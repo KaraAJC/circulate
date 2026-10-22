@@ -21,39 +21,44 @@ const path = require("path");
 const BASE_ID = process.env.AIRTABLE_BASE_ID || "appxqzMbcv09SeeOE";
 const DATA_FILE = path.join(__dirname, "js", "data.js");
 
-// Table + field IDs. Renaming a field in the Airtable UI is safe;
-// deleting/recreating one changes its ID and needs an update here.
+// Table IDs (stable regardless of how fields are named).
 const T = {
   orgs: "tblRkD7bMx87ATFA2",
   events: "tblsdgTj1gEF7Vs3y",
   recurring: "tblz9UblxrubXwl9f",
   locations: "tblyuPRSxfZ356aEF",
 };
+
+// Field NAMES, exactly as Airtable's REST API returns them in each record's
+// fields object (records are keyed by field name, not ID — the list-tables
+// metadata API is the one that speaks in IDs). Renaming a field in Airtable
+// therefore needs a matching update here; adding or removing records or
+// fields is otherwise safe.
 const F = {
   orgs: {
-    name: "fldnFwbvJqiAWvVLM", slug: "fldk8Q1EQSWZBgPIp",
-    takes: "fld1o1SBKhPkEyXcJ", address: "fldSsfYJei7QBd76X",
-    hours: "fldThqXWsB0tJ4XLE", notes: "fldZyLJvWlwYTrIpq",
-    url: "fldJDwLthGBiHqStG", cats: "fld3QX4yWlgieZ8ii",
-    shape: "fld0NVrhvg45CGJ00", listOnly: "fldY3yOOoipS8xixn",
-    lat: "fld90vcPxVGwygrZl", lng: "fldaz20S1SlE3TgcG",
+    name: "Name", slug: "Slug",
+    takes: "What they take", address: "Address",
+    hours: "Hours", notes: "Notes",
+    url: "Website", cats: "Categories",
+    shape: "Pin shape", listOnly: "List only (no pin)",
+    lat: "Latitude", lng: "Longitude",
   },
   events: {
-    name: "fldGVovy4GVfduNDf", date: "fldAmzd8R6SoNTL0l",
-    end: "fldcrmu1wD0B1qyBL", time: "fldjUQ0xEIApzdeAI",
-    where: "fldgxTkDjjRv63jhV", what: "fldk5tn8ofZDgf8rG",
+    name: "Event", date: "Date",
+    end: "End date", time: "Time",
+    where: "Where", what: "What",
   },
   recurring: {
-    name: "fldLeWPhVWGhHdRyz", orgs: "fldsIePlNjdBYxh0X",
-    pattern: "fld0kTzipaRZIxxx0", time: "fldx8G5uob0Rn4741",
-    where: "fldHeYnCc5fmhRfNX", what: "fldjm768vcXoazC3M",
-    note: "fldiX4eqK0QtsJzk4",
+    name: "Name", orgs: "Organization",
+    pattern: "Pattern", time: "Time",
+    where: "Where", what: "What",
+    note: "Note",
   },
   locations: {
-    name: "fldjAuvJ7YIVwv4dn", org: "fld25F8opOJu04NQ5",
-    kind: "fldJtZHGtMenXv8QL", address: "fldsYVp2rkJeta8HE",
-    lat: "fldzsH9Wd9XYR4G6C", lng: "fldZvzf8c6rpxWlND",
-    hours: "flduL1sAhPi7b0oss", notes: "fldMznPI5KP7Z4Bm9",
+    name: "Name", org: "Organization",
+    kind: "Kind", address: "Address",
+    lat: "Latitude", lng: "Longitude",
+    hours: "Hours", notes: "Notes",
   },
 };
 
