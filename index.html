@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Circulate — where Chicago's used things go</title>
+  <meta name="description" content="A map and calendar of Chicago donation & recycling drop-offs: who takes what, and when.">
+  <link rel="stylesheet" href="css/vendor/leaflet.css">
+  <link rel="stylesheet" href="css/vendor/maplibre-gl.css">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    @font-face {
+      font-family: "Caveat";
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+      src: url("assets/fonts/caveat-latin-400-normal.woff2") format("woff2");
+    }
+    @font-face {
+      font-family: "Caveat";
+      font-style: normal;
+      font-weight: 700;
+      font-display: swap;
+      src: url("assets/fonts/caveat-latin-700-normal.woff2") format("woff2");
+    }
+  </style>
+</head>
+<body>
+
+  <header class="masthead">
+    <div class="masthead-inner">
+      <h1 class="wordmark">Circulate</h1>
+      <p class="tagline">Where Chicago's used things go, and when to take them there.</p>
+      <nav class="tabs" aria-label="Views">
+        <button id="tab-map" class="tab" role="tab" aria-selected="true">Map</button>
+        <button id="tab-cal" class="tab" role="tab" aria-selected="false">Calendar</button>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- ============ MAP VIEW ============ -->
+    <section id="map-view" aria-label="Organizations and map">
+      <div id="filters" class="filters" role="group" aria-label="Filter by what you're donating"></div>
+      <div class="map-layout">
+        <div id="org-list" class="org-list" aria-label="Organization list"></div>
+        <div id="map" class="map" role="application" aria-label="Map of drop-off locations"></div>
+      </div>
+      <p class="map-legend">
+        <span class="marker-legend marker-dot"></span> fixed drop-off site
+        &nbsp;·&nbsp;
+        <span class="marker-legend marker-star"></span> event-based drop-off
+        &nbsp;·&nbsp;
+        <span class="marker-legend marker-bin"></span> drop bin
+        &nbsp;·&nbsp;
+        <span class="marker-legend marker-fridge"></span> community fridge
+        <span class="legend-note">Pins marked in the notes are neighborhood-level approximations.</span>
+      </p>
+    </section>
+
+    <!-- ============ CALENDAR VIEW ============ -->
+    <section id="cal-view" aria-label="Donation dates calendar" hidden>
+      <div class="cal-head">
+        <button id="cal-prev" class="cal-nav" aria-label="Previous month">←</button>
+        <h2 id="cal-month" class="cal-month"></h2>
+        <button id="cal-next" class="cal-nav" aria-label="Next month">→</button>
+      </div>
+      <div id="cal-grid" class="cal-grid"></div>
+      <div id="cal-detail" class="cal-detail" hidden></div>
+      <p class="cal-note">Fixed sites take donations during their regular hours any week — the calendar holds the dated events: Trash Castle drop-off windows, Reduce Waste pop-ups, the city facility's first-Saturday hours, and seasonal drives.</p>
+    </section>
+  </main>
+
+  <footer class="colophon">
+    <p>Hours and accepted-item lists verified October 2026 — lists rotate, so check an organization's own page before a long trip.</p>
+    <p>Drop-off data lives in <code>js/data.js</code>; edit that file to add places or dates. Map data © OpenStreetMap contributors.</p>
+  </footer>
+
+  <script src="js/vendor/leaflet.js"></script>
+  <script src="js/vendor/maplibre-gl.js"></script>
+  <script src="js/vendor/maplibre-gl-leaflet.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
