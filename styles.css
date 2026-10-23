@@ -233,6 +233,59 @@ main {
 .org-chips { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 5px; }
 .org-link { font-size: 13px; font-weight: 700; color: var(--ink); }
 
+/* ---------- distance from your address ---------- */
+
+.dist-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 16px;
+}
+
+.dist-form input[type="text"] {
+  font: inherit;
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--card);
+  border: 1.5px solid var(--rule);
+  border-radius: 4px;
+  padding: 6px 11px;
+  flex: 1 1 240px;
+  max-width: 340px;
+}
+
+.dist-form input[type="text"]:focus {
+  border-color: var(--ink);
+  outline: 3px solid rgba(32, 49, 92, 0.15);
+}
+
+.chip-btn { border-radius: 999px; }
+
+.dist-status { font-size: 13px; color: var(--ink-soft); }
+
+.org-dist {
+  flex: none;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink);
+  background: var(--yellow);
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  padding: 1px 8px;
+  white-space: nowrap;
+}
+
+.org-near {
+  margin: 6px 0 2px;
+  font-size: 13px;
+  border-left: 3px solid var(--yellow);
+  padding-left: 9px;
+  color: var(--ink-soft);
+}
+
+.org-near strong { color: var(--ink); }
+
 .empty { color: var(--ink-soft); font-style: italic; }
 
 .map {

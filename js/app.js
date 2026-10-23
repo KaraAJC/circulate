@@ -82,21 +82,67 @@
     return o.cats.some((c) => activeCats.has(c));
   }
 
+  // ---------- distance from your address ----------
+  let userPos = null; // [lat, lng] once you've submitted an address
+  let userMarker = null;
+
+  function haversineMiles(a, b) {
+    const R = 3958.8; // earth radius, miles
+    const rad = Math.PI / 180;
+    const dLat = (b[0] - a[0]) * rad, dLng = (b[1] - a[1]) * rad;
+    const s = Math.sin(dLat / 2) ** 2 +
+      Math.cos(a[0] * rad) * Math.cos(b[0] * rad) * Math.sin(dLng / 2) ** 2;
+    return 2 * R * Math.asin(Math.sqrt(s));
+  }
+
+  function nearestSite(o) {
+    if (!userPos) return null;
+    let best = null;
+    const consider = (p, loc) => {
+      if (!p) return;
+      const d = haversineMiles(userPos, p);
+      if (!best || d < best.d) best = { d, p, loc };
+    };
+    consider(o.coords, null);
+    LOCATIONS.forEach((l) => { if (l.orgId === o.id) consider(l.coords, l); });
+    return best;
+  }
+
+  function orgDistance(o) {
+    const n = nearestSite(o);
+    return n ? n.d : null;
+  }
+
+  function nearLine(o) {
+    const n = nearestSite(o);
+    if (!n || !n.loc) return "";
+    return `<p class="org-near">Nearest to you: <strong>${n.loc.name}</strong> · ${n.loc.address}</p>`;
+  }
+
+  function distTag(o) {
+    const d = orgDistance(o);
+    if (d == null) return "";
+    const label = d < 0.1 ? "just here" : `${d.toFixed(1)} mi`;
+    return `<span class="org-dist">${label}</span>`;
+  }
+
   function renderList() {
     const el = $("#org-list");
     el.innerHTML = "";
-    ORGS.forEach((o, i) => {
-      if (!orgMatches(o)) return;
+    const orgs = ORGS.filter(orgMatches);
+    if (userPos) orgs.sort((a, b) => (orgDistance(a) ?? Infinity) - (orgDistance(b) ?? Infinity));
+    orgs.forEach((o, i) => {
       const card = document.createElement("article");
       card.className = "org" + (o.id === activeOrg ? " org-active" : "");
       card.dataset.id = o.id;
       card.innerHTML = `
         <header class="org-head">
           <h3>${o.name}</h3>
-          <span class="marker-legend marker-${o.shape === "star" ? "star" : "dot"}"></span>
+          ${distTag(o)}<span class="marker-legend marker-${o.shape === "star" ? "star" : "dot"}"></span>
         </header>
         <p class="org-takes">${o.takes.length > 180 ? o.takes.slice(0, 178) + "…" : o.takes}</p>
         <p class="org-line">${o.address}</p>
+        ${nearLine(o)}
         <p class="org-line"><strong>${o.hours}</strong></p>
         ${o.notes ? `<p class="org-notes">${o.notes}</p>` : ""}
         <div class="org-chips">${catChips(o.cats)}</div>
@@ -207,7 +253,7 @@
       );
       m.on("click", () => setActiveOrg(loc.orgId));
       markers[`loc-${i}`] = m;
-      locationMarkers.push({ orgId: loc.orgId, marker: m });
+      locationMarkers.push({ orgId: loc.orgId, loc, marker: m });
     });
   }
 
@@ -237,17 +283,80 @@
     setActiveOrg(id);
     const o = ORGS.find((x) => x.id === id);
     if (view !== "map") switchView("map");
-    if (o && o.coords && markers[id]) {
+    // with a distance address set, open the nearest site; otherwise the
+    // org's own pin, or the first listed store for multi-site orgs
+    let target = null;
+    if (o && userPos) {
+      const n = nearestSite(o);
+      if (n && n.loc) target = locationMarkers.find((l) => l.loc === n.loc);
+    }
+    if (!target && o && o.coords && markers[id]) {
       markers[id].openPopup();
       map.flyTo(o.coords, 14, { duration: 0.8 });
-    } else {
-      // multi-location org: fly to its first location pin
-      const first = locationMarkers.find((l) => l.orgId === id);
-      if (first) {
-        first.marker.openPopup();
-        map.flyTo(first.marker.getLatLng(), 14, { duration: 0.8 });
-      }
+      return;
     }
+    if (!target && o) {
+      target = locationMarkers.find((l) => l.orgId === id && l.loc.kind === "store")
+        || locationMarkers.find((l) => l.orgId === id);
+    }
+    if (target) {
+      target.marker.openPopup();
+      map.flyTo(target.marker.getLatLng(), 14, { duration: 0.8 });
+    }
+  }
+
+  // ---------- address search & distance sorting ----------
+  async function geocodeAddress(q) {
+    // Nominatim, OpenStreetMap's free geocoder: no API key, fine for an
+    // occasional manual lookup (their usage policy forbids heavy automated use).
+    const url = "https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&countrycodes=us&q=" +
+      encodeURIComponent(q);
+    const res = await fetch(url, { headers: { Accept: "application/json" } });
+    if (!res.ok) throw new Error("geocoder request failed");
+    const hits = await res.json();
+    if (!hits.length) return null;
+    // prefer a house-level match: a wrong ZIP in the query shouldn't drop
+    // the pin on the middle of the neighborhood
+    const house = hits.find((h) => h.type === "house" || h.addresstype === "house");
+    const hit = house || hits[0];
+    return [+hit.lat, +hit.lon];
+  }
+
+  function setUserMarker(pos) {
+    const icon = L.divIcon({
+      className: "pin-wrap",
+      html: `<svg viewBox="0 0 24 24" width="24" height="24"><circle cx="12" cy="12" r="9" fill="#20315c" stroke="#fff" stroke-width="2"/><circle cx="12" cy="12" r="3.5" fill="#ffe23f" stroke="#20315c" stroke-width="1.5"/></svg>`,
+      iconSize: [24, 24], iconAnchor: [12, 12],
+    });
+    if (userMarker) { userMarker.setLatLng(pos); userMarker.setIcon(icon); return; }
+    userMarker = L.marker(pos, { icon, title: "Your address", zIndexOffset: 500, interactive: false }).addTo(map);
+  }
+
+  function zoomToDistances() {
+    const pts = [userPos];
+    ORGS.forEach((o) => {
+      if (!orgMatches(o)) return;
+      const n = nearestSite(o);
+      if (n) pts.push(n.p);
+    });
+    if (pts.length < 2) return;
+    // nearest sites sprawl citywide for some orgs (16 fridges, drop bins
+    // out to Oak Park and Evanston), so cap the view at neighborhood scale:
+    // frame the sites when they fit, otherwise center on the address
+    map.flyToBounds(L.latLngBounds(pts).pad(0.3), { duration: 0.8 });
+    map.once("moveend", () => {
+      if (map.getZoom() < 13) map.flyTo(userPos, 13, { duration: 0.8 });
+    });
+  }
+
+  function clearDistance() {
+    userPos = null;
+    if (userMarker) { map.removeLayer(userMarker); userMarker = null; }
+    $("#dist-clear").hidden = true;
+    $("#dist-address").value = "";
+    $("#dist-status").textContent = "";
+    renderList();
+    map.flyTo([41.878, -87.65], 11, { duration: 0.8 });
   }
 
   // ---------- calendar ----------
@@ -318,6 +427,29 @@
   calY = now.getFullYear();
   calM = now.getMonth();
 
+  $("#dist-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const q = $("#dist-address").value.trim();
+    if (!q) return;
+    const status = $("#dist-status");
+    status.textContent = "Looking up your address…";
+    try {
+      const pos = await geocodeAddress(q);
+      if (!pos) {
+        status.textContent = "Couldn't find that address — try adding the neighborhood or ZIP.";
+        return;
+      }
+      userPos = pos;
+      setUserMarker(pos);
+      $("#dist-clear").hidden = false;
+      status.textContent = "Sorted by distance from you.";
+      renderList();
+      zoomToDistances();
+    } catch (err) {
+      status.textContent = "Address lookup failed — try again in a moment.";
+    }
+  });
+  $("#dist-clear").addEventListener("click", clearDistance);
   $("#tab-map").addEventListener("click", () => switchView("map"));
   $("#tab-cal").addEventListener("click", () => switchView("cal"));
   $("#cal-prev").addEventListener("click", () => { calM--; if (calM < 0) { calM = 11; calY--; } renderCalendar(); });

@@ -42,6 +42,12 @@
     <!-- ============ MAP VIEW ============ -->
     <section id="map-view" aria-label="Organizations and map">
       <div id="filters" class="filters" role="group" aria-label="Filter by what you're donating"></div>
+      <form id="dist-form" class="dist-form" role="search" aria-label="Sort by distance from your address">
+        <input id="dist-address" type="text" autocomplete="street-address" placeholder="Your street address (for distances)" aria-label="Your address">
+        <button type="submit" class="chip chip-btn">Sort by distance</button>
+        <button type="button" id="dist-clear" class="chip chip-btn" hidden>Clear distance</button>
+        <span id="dist-status" class="dist-status" role="status" aria-live="polite"></span>
+      </form>
       <div class="map-layout">
         <div id="org-list" class="org-list" aria-label="Organization list"></div>
         <div id="map" class="map" role="application" aria-label="Map of drop-off locations"></div>
