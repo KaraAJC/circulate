@@ -43,6 +43,14 @@
   <main>
     <!-- ============ MAP VIEW ============ -->
     <section id="map-view" aria-label="Organizations and map">
+      <form id="item-form" class="item-form" role="search" aria-label="Search for a place that takes your item">
+        <label class="item-label" for="item-search">I want to circulate…</label>
+        <div class="item-box">
+          <input id="item-search" type="search" placeholder="books, t-shirts, plastic caps, tools…" autocomplete="off">
+          <button type="button" id="item-clear" class="item-clear" hidden aria-label="Clear item search">×</button>
+        </div>
+        <span id="item-status" class="item-status" role="status" aria-live="polite"></span>
+      </form>
       <div id="filters" class="filters" role="group" aria-label="Filter by what you're donating"></div>
       <form id="dist-form" class="dist-form" role="search" aria-label="Sort by distance from your address">
         <input id="dist-address" type="text" autocomplete="street-address" placeholder="Your street address (for distances)" aria-label="Your address">

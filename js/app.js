@@ -76,10 +76,88 @@
   let view = "map";
   let calY, calM;
 
+  // ---------- item search ("I want to circulate…") ----------
+  // Free-text search over what each org already says (name, takes, notes,
+  // category labels). Everyday words map onto the guide's vocabulary via
+  // small synonym groups, so "sneakers" finds "shoes" and "vinyl" finds LPs.
+  let itemQuery = "";
+  let itemRegexes = [];
+
+  const SYNONYM_GROUPS = [
+    ["t-shirt", "shirt", "tee"],
+    ["shoe", "sneaker", "boot"],
+    ["lp", "vinyl", "record"],
+    ["carton", "tetra"],
+    ["fabric", "textile", "linen"],
+    ["sweater", "jacket", "coat"],
+  ];
+
+  const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+  // "boxes" → [box, boxes]; "glass" stays whole; "shoes" → [shoe, shoes]
+  function singulars(word) {
+    if (word.length > 3 && !word.endsWith("ss") && /[a-z]$/.test(word)) {
+      return [word, word.replace(/e?s$/, "")];
+    }
+    return [word];
+  }
+
+  // one regex per typed word: its singular forms plus, when the word is in
+  // a synonym group, every member's singular forms. A trailing \w{0,2}
+  // lets "book" catch "books" and "toolbox" without "book" matching "cart".
+  function tokenRegex(token) {
+    const words = new Set(singulars(token));
+    for (const w of Array.from(words)) {
+      for (const g of SYNONYM_GROUPS) {
+        if (g.includes(w)) g.forEach((x) => singulars(x).forEach((s) => words.add(s)));
+      }
+    }
+    const body = Array.from(words).map(escapeRe).join("|");
+    return new RegExp("\\b(" + body + ")\\w{0,2}\\b", "i");
+  }
+
+  function setItemQuery(q) {
+    itemQuery = q;
+    itemRegexes = q ? q.split(/[\s,]+/).filter(Boolean).map(tokenRegex) : [];
+  }
+
+  function itemHaystack(o) {
+    const labels = o.cats.map((c) => (CATEGORIES[c] ? CATEGORIES[c].label : "")).join(" ");
+    return [o.name, o.takes, o.notes || "", labels].join(" ");
+  }
+
+  function highlightTerms(text) {
+    let out = text;
+    for (const re of itemRegexes) {
+      out = out.replace(new RegExp(re.source, "gi"), (m) => `<mark>${m}</mark>`);
+    }
+    return out;
+  }
+
+  // with a search active, the snippet centers on the first matching word
+  function takesSnippet(o) {
+    const t = o.takes;
+    if (itemRegexes.length) {
+      let idx = -1;
+      for (const re of itemRegexes) {
+        const m = re.exec(t);
+        if (m && (idx === -1 || m.index < idx)) idx = m.index;
+      }
+      if (idx > 90) {
+        return "…" + highlightTerms(t.slice(idx - 60, idx + 120)) + "…";
+      }
+    }
+    return highlightTerms(t.length > 180 ? t.slice(0, 178) + "…" : t);
+  }
+
   // ---------- list ----------
   function orgMatches(o) {
-    if (!activeCats.size) return true;
-    return o.cats.some((c) => activeCats.has(c));
+    if (activeCats.size && !o.cats.some((c) => activeCats.has(c))) return false;
+    if (itemRegexes.length) {
+      // every typed word has to appear somewhere for this org
+      return itemRegexes.every((re) => re.test(itemHaystack(o)));
+    }
+    return true;
   }
 
   // ---------- distance from your address ----------
@@ -131,6 +209,9 @@
     el.innerHTML = "";
     const orgs = ORGS.filter(orgMatches);
     if (userPos) orgs.sort((a, b) => (orgDistance(a) ?? Infinity) - (orgDistance(b) ?? Infinity));
+    $("#item-status").textContent = itemRegexes.length
+      ? `${orgs.length} ${orgs.length === 1 ? "place takes" : "places take"} “${itemQuery}”`
+      : "";
     orgs.forEach((o, i) => {
       const card = document.createElement("article");
       card.className = "org" + (o.id === activeOrg ? " org-active" : "");
@@ -140,7 +221,7 @@
           <h3>${o.name}</h3>
           ${distTag(o)}<span class="marker-legend marker-${o.shape === "star" ? "star" : "dot"}"></span>
         </header>
-        <p class="org-takes">${o.takes.length > 180 ? o.takes.slice(0, 178) + "…" : o.takes}</p>
+        <p class="org-takes">${takesSnippet(o)}</p>
         <p class="org-line">${o.address}</p>
         ${nearLine(o)}
         <p class="org-line"><strong>${o.hours}</strong></p>
@@ -150,7 +231,10 @@
       card.addEventListener("click", () => focusOrg(o.id));
       el.appendChild(card);
     });
-    if (!el.children.length) el.innerHTML = `<p class="empty">Nothing takes that combination — try fewer filters.</p>`;
+    if (!el.children.length)
+      el.innerHTML = itemRegexes.length
+        ? `<p class="empty">Nothing in the guide matches “${itemQuery}” yet — try another word, or browse the category chips.</p>`
+        : `<p class="empty">Nothing takes that combination — try fewer filters.</p>`;
   }
 
   // ---------- filters ----------
@@ -450,6 +534,22 @@
     }
   });
   $("#dist-clear").addEventListener("click", clearDistance);
+  const itemInput = $("#item-search");
+  itemInput.addEventListener("input", () => {
+    setItemQuery(itemInput.value.trim().toLowerCase());
+    $("#item-clear").hidden = !itemQuery;
+    renderList();
+    renderMarkers();
+  });
+  $("#item-clear").addEventListener("click", () => {
+    itemInput.value = "";
+    setItemQuery("");
+    $("#item-clear").hidden = true;
+    itemInput.focus();
+    renderList();
+    renderMarkers();
+  });
+  $("#item-form").addEventListener("submit", (e) => e.preventDefault());
   $("#tab-map").addEventListener("click", () => switchView("map"));
   $("#tab-cal").addEventListener("click", () => switchView("cal"));
   $("#cal-prev").addEventListener("click", () => { calM--; if (calM < 0) { calM = 11; calY--; } renderCalendar(); });

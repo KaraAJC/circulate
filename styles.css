@@ -264,6 +264,70 @@ main {
 
 .dist-status { font-size: 13px; color: var(--ink-soft); }
 
+/* ---------- item search ---------- */
+
+.item-form { margin-bottom: 16px; }
+
+.item-label {
+  display: block;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 30px;
+  line-height: 1.1;
+  margin-bottom: 4px;
+}
+
+.item-box {
+  position: relative;
+  max-width: 420px;
+}
+
+.item-box input {
+  font: inherit;
+  font-size: 16px;
+  width: 100%;
+  color: var(--ink);
+  background: #fff;
+  border: 2px solid var(--ink);
+  border-radius: 4px;
+  box-shadow: var(--shadow);
+  padding: 9px 38px 9px 12px;
+}
+
+.item-box input:focus {
+  outline: 3px solid rgba(255, 226, 63, 0.6);
+}
+
+.item-box input::-webkit-search-cancel-button { display: none; }
+
+.item-clear {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 50%;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.item-clear:hover { background: var(--yellow); }
+
+.item-status { font-size: 13px; color: var(--ink-soft); margin-left: 6px; }
+
+.org-takes mark {
+  background: var(--yellow);
+  color: var(--ink);
+  padding: 0 2px;
+  border-radius: 2px;
+}
+
 .org-dist {
   flex: none;
   font-size: 12px;
