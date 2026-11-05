@@ -77,48 +77,69 @@
   let calY, calM;
 
   // ---------- item search ("I want to circulate…") ----------
-  // Free-text search over what each org already says (name, takes, notes,
-  // category labels). Everyday words map onto the guide's vocabulary via
-  // small synonym groups, so "sneakers" finds "shoes" and "vinyl" finds LPs.
+  // Free-text search over what each org says (name, takes, notes, category
+  // labels), with an item vocabulary on top: the ITEMS table in data.js
+  // maps each circulate-able item to the other words people type for it
+  // ("hdpe", "denim", "sneakers") and to the category it falls under.
+  // Each typed word becomes a term with two tiers: a text hit on the org's
+  // own words, or, when the word is a known item, a category fallback so
+  // orgs that never name the item still surface.
   let itemQuery = "";
-  let itemRegexes = [];
-
-  const SYNONYM_GROUPS = [
-    ["t-shirt", "shirt", "tee"],
-    ["shoe", "sneaker", "boot"],
-    ["lp", "vinyl", "record"],
-    ["carton", "tetra"],
-    ["fabric", "textile", "linen"],
-    ["sweater", "jacket", "coat"],
-  ];
+  let itemTerms = []; // one per typed word: { re, cats }
 
   const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
   // "boxes" → [box, boxes]; "glass" stays whole; "shoes" → [shoe, shoes]
   function singulars(word) {
-    if (word.length > 3 && !word.endsWith("ss") && /[a-z]$/.test(word)) {
+    if (word.length > 3 && !word.endsWith("ss") && /[a-z0-9]$/.test(word)) {
       return [word, word.replace(/e?s$/, "")];
     }
     return [word];
   }
 
-  // one regex per typed word: its singular forms plus, when the word is in
-  // a synonym group, every member's singular forms. A trailing \w{0,2}
-  // lets "book" catch "books" and "toolbox" without "book" matching "cart".
-  function tokenRegex(token) {
-    const words = new Set(singulars(token));
-    for (const w of Array.from(words)) {
-      for (const g of SYNONYM_GROUPS) {
-        if (g.includes(w)) g.forEach((x) => singulars(x).forEach((s) => words.add(s)));
-      }
+  // the ITEMS rows this word could be pointing at: its forms appear at the
+  // start of the item's name or one of its aliases ("hdpe" and "plastic"
+  // both land on "Plastic bottles & containers")
+  function itemsForWord(word) {
+    const forms = singulars(word);
+    return ITEMS.filter((it) => {
+      const names = [it.item.toLowerCase(), ...(it.aliases || []).map((a) => a.toLowerCase())];
+      return names.some((n) =>
+        forms.some((f) =>
+          new RegExp((/^\w/.test(f) ? "\\b" : "") + escapeRe(f) + "\\w*", "i").test(n)
+        )
+      );
+    });
+  }
+
+  // one regex per typed word: its singular forms plus, for any ITEMS row it
+  // resolves to, that row's name and aliases. A word-start match lets
+  // "electron" find "electronics" while you type; the \b anchors keep "art"
+  // from matching "cart". Aliases like "#1" start with a non-word char, so
+  // they carry no anchor.
+  function tokenRegex(word, items) {
+    const words = new Set(singulars(word));
+    for (const it of items) {
+      words.add(it.item.toLowerCase());
+      (it.aliases || []).forEach((a) => singulars(a.trim().toLowerCase()).forEach((s) => words.add(s)));
     }
-    const body = Array.from(words).map(escapeRe).join("|");
-    return new RegExp("\\b(" + body + ")\\w{0,2}\\b", "i");
+    const body = Array.from(words)
+      .map((w) => (/^\w/.test(w) ? "\\b" : "") + escapeRe(w))
+      .join("|");
+    return new RegExp("(?:" + body + ")\\w*", "i");
+  }
+
+  function makeTerm(word) {
+    const items = itemsForWord(word);
+    return {
+      re: tokenRegex(word, items),
+      cats: new Set(items.map((it) => it.cat).filter(Boolean)),
+    };
   }
 
   function setItemQuery(q) {
     itemQuery = q;
-    itemRegexes = q ? q.split(/[\s,]+/).filter(Boolean).map(tokenRegex) : [];
+    itemTerms = q ? q.split(/[\s,]+/).filter(Boolean).map(makeTerm) : [];
   }
 
   function itemHaystack(o) {
@@ -128,8 +149,8 @@
 
   function highlightTerms(text) {
     let out = text;
-    for (const re of itemRegexes) {
-      out = out.replace(new RegExp(re.source, "gi"), (m) => `<mark>${m}</mark>`);
+    for (const t of itemTerms) {
+      out = out.replace(new RegExp(t.re.source, "gi"), (m) => `<mark>${m}</mark>`);
     }
     return out;
   }
@@ -137,10 +158,10 @@
   // with a search active, the snippet centers on the first matching word
   function takesSnippet(o) {
     const t = o.takes;
-    if (itemRegexes.length) {
+    if (itemTerms.length) {
       let idx = -1;
-      for (const re of itemRegexes) {
-        const m = re.exec(t);
+      for (const term of itemTerms) {
+        const m = term.re.exec(t);
         if (m && (idx === -1 || m.index < idx)) idx = m.index;
       }
       if (idx > 90) {
@@ -153,9 +174,13 @@
   // ---------- list ----------
   function orgMatches(o) {
     if (activeCats.size && !o.cats.some((c) => activeCats.has(c))) return false;
-    if (itemRegexes.length) {
-      // every typed word has to appear somewhere for this org
-      return itemRegexes.every((re) => re.test(itemHaystack(o)));
+    if (itemTerms.length) {
+      // every typed word matches the org's own text, or — when the word is
+      // a known item — the org belongs to that item's category
+      const hay = itemHaystack(o);
+      return itemTerms.every(
+        (t) => t.re.test(hay) || (t.cats.size && o.cats.some((c) => t.cats.has(c)))
+      );
     }
     return true;
   }
@@ -209,7 +234,7 @@
     el.innerHTML = "";
     const orgs = ORGS.filter(orgMatches);
     if (userPos) orgs.sort((a, b) => (orgDistance(a) ?? Infinity) - (orgDistance(b) ?? Infinity));
-    $("#item-status").textContent = itemRegexes.length
+    $("#item-status").textContent = itemTerms.length
       ? `${orgs.length} ${orgs.length === 1 ? "place takes" : "places take"} “${itemQuery}”`
       : "";
     orgs.forEach((o, i) => {
@@ -232,7 +257,7 @@
       el.appendChild(card);
     });
     if (!el.children.length)
-      el.innerHTML = itemRegexes.length
+      el.innerHTML = itemTerms.length
         ? `<p class="empty">Nothing in the guide matches “${itemQuery}” yet — try another word, or browse the category chips.</p>`
         : `<p class="empty">Nothing takes that combination — try fewer filters.</p>`;
   }

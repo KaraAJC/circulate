@@ -660,3 +660,242 @@ const RECURRING = [
     note: "Repeats every Tuesday morning.",
   },
 ];
+
+// Item vocabulary for the "I want to circulate…" search: what each item is
+// also typed as (hdpe, #5, denim…) and the category it falls back to.
+const ITEMS = [
+  {
+    item: "Shoes",
+    cat: "clothes",
+    aliases: ["sneakers","boots","athletic shoes","cleats","footwear"],
+  },
+  {
+    item: "Books",
+    cat: "books",
+    aliases: ["paperbacks","hardcovers","textbooks"],
+    notes: "Open Books: good condition, ~50 loose books per visit, no boxes",
+  },
+  {
+    item: "Ink & toner cartridges",
+    cat: "electronics",
+    aliases: ["ink cartridges","toner"],
+  },
+  {
+    item: "Socks & underwear",
+    cat: "clothes",
+    aliases: ["pajamas","diapers"],
+    notes: "Cradles to Crayons wants these new",
+  },
+  {
+    item: "Art supplies",
+    cat: "art",
+    aliases: ["craft materials","art materials","easels"],
+  },
+  {
+    item: "Rugs & flooring",
+    cat: "furniture",
+    aliases: ["rugs","tile","hardwood flooring","vinyl flooring"],
+    notes: "ReStore: rugs over 50 sq ft, tile over 100 sq ft",
+  },
+  {
+    item: "Camping & specialty gear",
+    cat: "tools",
+    aliases: ["camping equipment","PA system","telescope","cider press","cricut"],
+  },
+  {
+    item: "Audio & AV gear",
+    cat: "electronics",
+    aliases: ["speakers","headphones","microphones","mics","stereos"],
+    notes: "Trash Castle takes non-working Beats headphones; South Side Hackerspace takes computer/AV parts",
+  },
+  {
+    item: "Fabric",
+    cat: "art",
+    aliases: ["cloth","cotton","linen","rags"],
+    notes: "The WasteShed and Trash Castle; fabric rolls & large pieces at CCRx",
+  },
+  {
+    item: "Video games & consoles",
+    cat: "electronics",
+    aliases: ["gaming","consoles","controllers"],
+    notes: "Trash Castle takes video game stuff, working or not",
+  },
+  {
+    item: "Buckets",
+    cat: "plastics",
+    aliases: ["5-gallon buckets","pails"],
+    notes: "Trash Castle: clean",
+  },
+  {
+    item: "Computers & tablets",
+    cat: "electronics",
+    aliases: ["laptops","computers","monitors","keyboards","mice","printers","ipads","tablets"],
+    notes: "PCs for People: wipe data first, remove from Apple devices; CCRx: working, under 5 yrs",
+  },
+  {
+    item: "Lighting",
+    cat: "building",
+    aliases: ["lamps","chandeliers","light fixtures","led bulbs"],
+  },
+  {
+    item: "T-shirts & aprons",
+    cat: "clothes",
+    aliases: ["tees","aprons","rags"],
+    notes: "Trash Castle takes them clean, wearable or not",
+  },
+  {
+    item: "Yarn & notions",
+    cat: "art",
+    aliases: ["yarn","knitting","crochet hooks","notions"],
+  },
+  {
+    item: "Cords & chargers",
+    cat: "electronics",
+    aliases: ["cables","power cords","wires","chargers"],
+  },
+  {
+    item: "Frames & canvas",
+    cat: "art",
+    aliases: ["frames","canvas"],
+  },
+  {
+    item: "Appliances",
+    cat: "building",
+    aliases: ["fridges","stoves","washers","dryers","microwaves","hvac"],
+    notes: "ReStore: fridges/stoves/washers ≤10 yrs, microwaves ≤3 yrs, HVAC ≤5 yrs, working",
+  },
+  {
+    item: "Siding, drywall & roofing",
+    cat: "building",
+    aliases: ["siding","drywall","shingles","insulation"],
+    notes: "ReStore: new siding/drywall, unopened shingles, packaged insulation",
+  },
+  {
+    item: "Lumber & trim",
+    cat: "building",
+    aliases: ["lumber","trim","boards"],
+    notes: "ReStore: over 4 ft",
+  },
+  {
+    item: "Paper",
+    cat: "books",
+    aliases: ["loose leaf paper","office paper"],
+  },
+  {
+    item: "Glass jars",
+    cat: "plastics",
+    aliases: ["jars","mason jars"],
+    notes: "Trash Castle: small jars with lids",
+  },
+  {
+    item: "Jeans",
+    cat: "clothes",
+    aliases: ["denim","dungarees","levis"],
+    notes: "Reduce Waste Chicago takes denim specifically at events",
+  },
+  {
+    item: "Bricks & stone",
+    cat: "building",
+    aliases: ["bricks","cinder blocks","stone","pavers"],
+  },
+  {
+    item: "Caps & lids",
+    cat: "plastics",
+    aliases: ["bottle caps","plastic lids"],
+    notes: "Trash Castle takes all types",
+  },
+  {
+    item: "Records & LPs",
+    cat: "books",
+    aliases: ["vinyl records","lps","albums"],
+  },
+  {
+    item: "Food",
+    cat: "food",
+    aliases: ["pantry items","packaged food","canned goods"],
+    notes: "The Love Fridge: sealed or original packaging",
+  },
+  {
+    item: "Tools",
+    cat: "tools",
+    aliases: ["hand tools","power tools","drills","saws","dremel","x-acto","clamps"],
+  },
+  {
+    item: "Musical instruments",
+    cat: "tools",
+    aliases: ["instruments","guitars","drums"],
+  },
+  {
+    item: "Clothing",
+    cat: "clothes",
+    aliases: ["clothes","apparel","garments","shirts","pants","dresses","coats"],
+    notes: "Most clothing orgs want reusable condition",
+  },
+  {
+    item: "School & office supplies",
+    cat: "art",
+    aliases: ["pens","markers","crayons","notebooks","backpacks"],
+  },
+  {
+    item: "Doors & windows",
+    cat: "building",
+    aliases: ["doors","windows"],
+    notes: "ReStore takes new doors & windows",
+  },
+  {
+    item: "Skates & wheels",
+    cat: "clothes",
+    aliases: ["rollerskates","rollerblades","skateboards","scooters","trikes","bikes","bicycles","helmets","pads"],
+    notes: "Struggling Black Girls Magic Club takes all sizes and parts; Reuse-a-palooza takes bicycles",
+  },
+  {
+    item: "Plumbing fixtures",
+    cat: "building",
+    aliases: ["sinks","toilets","vanities","tubs","faucets"],
+  },
+  {
+    item: "Pet supplies",
+    cat: "pet",
+    aliases: ["pet food","leashes","collars","pet toys","litter","crates"],
+  },
+  {
+    item: "Household textiles",
+    cat: "clothes",
+    aliases: ["linens","towels","blankets","bedding","curtains","sheets"],
+    notes: "PAWS takes clean towels & blankets (no fitted sheets) for animals",
+  },
+  {
+    item: "Film plastics",
+    cat: "plastics",
+    aliases: ["plastic bags","plastic film","ziplocs","bubble wrap","grocery bags"],
+  },
+  {
+    item: "Prescription bottles",
+    cat: "plastics",
+    aliases: ["rx bottles","pill bottles"],
+    notes: "Trash Castle: empty",
+  },
+  {
+    item: "Kitchen cabinets",
+    cat: "building",
+    aliases: ["cabinets"],
+    notes: "ReStore takes full kitchen cabinet sets",
+  },
+  {
+    item: "Furniture",
+    cat: "furniture",
+    aliases: ["couch","sofa","dresser","table","chairs","patio furniture"],
+    notes: "ReStore: no rips, stains, or pet hair",
+  },
+  {
+    item: "Batteries",
+    cat: "electronics",
+    aliases: ["rechargeable","lithium","alkaline","coin cells","car batteries"],
+  },
+  {
+    item: "Plastic bottles & containers",
+    cat: "plastics",
+    aliases: ["rigid plastics","hdpe","pet","pete","pp","ldpe","ps","#1","#2","#5","resin codes"],
+    notes: "GreenWay Plastics: rigid bottles & containers — check with them on specific resin numbers",
+  },
+];
