@@ -140,6 +140,73 @@ function labelToKeyMap(categoriesBlock) {
   return map;
 }
 
+// ---------- geocoding backfill ----------
+// Submissions from the site's forms arrive without Latitude/Longitude —
+// nobody knows their coordinates. Nominatim (OpenStreetMap's free geocoder,
+// the same one app.js uses) turns the address into coordinates, and we write
+// them back to Airtable so the next build has them. Needs a token with
+// data.records:write; with a read-only token the build still works, it just
+// warns instead of writing back.
+const NOMINATIM_URL =
+  "https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=us&q=";
+const USER_AGENT = "circulate-build/1.0 (static site for Chicago drop-off spots)";
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+async function geocode(address) {
+  const url = NOMINATIM_URL + encodeURIComponent(`${address}, Chicago, IL`);
+  const res = await fetch(url, { headers: { "User-Agent": USER_AGENT } });
+  if (!res.ok) throw new Error(`geocoder returned ${res.status}`);
+  const hits = await res.json();
+  return hits.length
+    ? { lat: +hits[0].lat, lng: +hits[0].lon, label: hits[0].display_name }
+    : null;
+}
+
+async function backfillCoords(orgsRecs, token) {
+  const fo = F.orgs;
+  const missing = orgsRecs.filter((r) => {
+    const v = r.fields || {};
+    return (
+      typeof v[fo.lat] !== "number" &&
+      typeof v[fo.lng] !== "number" &&
+      (v[fo.address] || "").trim()
+    );
+  });
+  if (!missing.length) return;
+  console.log(`\nGeocoding ${missing.length} org(s) missing coordinates:`);
+  for (const r of missing) {
+    const v = r.fields || {};
+    const name = v[fo.name] || r.id;
+    try {
+      const hit = await geocode(v[fo.address]);
+      await sleep(1100); // Nominatim usage policy: at most 1 request/second
+      if (!hit) {
+        console.log(`  ! ${name}: no match for "${v[fo.address]}" — leaving coordinates empty; add them by hand in Airtable.`);
+        continue;
+      }
+      console.log(`  = ${name}: ${hit.lat.toFixed(4)}, ${hit.lng.toFixed(4)} (${hit.label})`);
+      const res = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${T.orgs}`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          records: [{ id: r.id, fields: { [fo.lat]: hit.lat, [fo.lng]: hit.lng } }],
+        }),
+      });
+      if (!res.ok) {
+        const body = await res.text().catch(() => "");
+        console.log(`  ! ${name}: geocoded, but the Airtable write failed (${res.status}). ${body.slice(0, 200)}`);
+        console.log("    Check that the token has the data.records:write scope.");
+        continue;
+      }
+      v[fo.lat] = hit.lat;
+      v[fo.lng] = hit.lng;
+    } catch (e) {
+      console.log(`  ! ${name}: geocoding failed (${e.message}) — leaving coordinates empty.`);
+    }
+  }
+  console.log("");
+}
+
 // ---------- record -> data.js transforms ----------
 function orgToEntry(r, f, catMap) {
   const v = r.fields || {};
@@ -254,6 +321,7 @@ async function main() {
     const token = loadToken();
     console.log(`Pulling from base ${BASE_ID}…`);
     orgsRecs = await fetchTable("Organizations", T.orgs, token);
+    await backfillCoords(orgsRecs, token);
     eventRecs = await fetchTable("Events", T.events, token);
     recRecs = await fetchTable("Recurring patterns", T.recurring, token);
     locationRecs = await fetchTable("Locations", T.locations, token);

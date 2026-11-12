@@ -149,6 +149,18 @@ const ORGS = [
     coords: [41.9399,-87.6536],
   },
   {
+    id: "albany-park-free-store",
+    name: "Albany Park Free Store",
+    shape: "star",
+    cats: ["clothes","furniture","food"],
+    address: "3000 w lawrence chicago, il 60625",
+    hours: "mondays 4-8pm and saturday 12-2pm",
+    takes: "toilet paper, cough drops, bar soap, deodorant, new underwear, wet wipes, socks, shopping bags, cleaning supplies, chapstick, warm clothes, coats, boots, gloves, hats, face masks, hand sanitizer, diapers, gift cards, kitchenware, food supplies",
+    notes: "this is in partnership with the Albany Park Mutual Aid fund",
+    url: "albanyparkfreestore.com",
+    coords: [41.9688,-87.7039],
+  },
+  {
     id: "ssh",
     name: "South Side Hackerspace",
     shape: "star",
