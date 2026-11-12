@@ -591,6 +591,22 @@ main {
   box-shadow: var(--shadow);
 }
 
+.contrib-form[hidden] {
+  display: none;
+}
+
+.contrib-toggle {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 0 0 16px;
+}
+
+.contrib-toggle .chip[aria-pressed="true"] {
+  background: var(--yellow);
+  border-color: var(--ink);
+}
+
 /* ---------- footer ---------- */
 
 .colophon {

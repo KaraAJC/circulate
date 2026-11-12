@@ -533,6 +533,13 @@
     if (v === "cal") renderCalendar();
   }
 
+  function setContribForm(which) {
+    $("#contrib-place-form").hidden = which !== "place";
+    $("#contrib-event-form").hidden = which !== "event";
+    $("#contrib-toggle-place").setAttribute("aria-pressed", which === "place");
+    $("#contrib-toggle-event").setAttribute("aria-pressed", which === "event");
+  }
+
   // ---------- boot ----------
   const now = new Date();
   calY = now.getFullYear();
@@ -580,6 +587,8 @@
   $("#tab-map").addEventListener("click", () => switchView("map"));
   $("#tab-cal").addEventListener("click", () => switchView("cal"));
   $("#tab-contrib").addEventListener("click", () => switchView("contrib"));
+  $("#contrib-toggle-place").addEventListener("click", () => setContribForm("place"));
+  $("#contrib-toggle-event").addEventListener("click", () => setContribForm("event"));
   $("#cal-prev").addEventListener("click", () => { calM--; if (calM < 0) { calM = 11; calY--; } renderCalendar(); });
   $("#cal-next").addEventListener("click", () => { calM++; if (calM > 11) { calM = 0; calY++; } renderCalendar(); });
 

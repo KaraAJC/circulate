@@ -88,9 +88,14 @@
     </section>
 
     <!-- ============ CONTRIBUTE VIEW ============ -->
-    <section id="contrib-view" aria-label="Suggest a place to add" hidden>
-      <p class="contrib-intro">Know a spot that takes donations or things to recycle that's missing? Fill this in and we'll check it out and add it to Circulate.</p>
-      <iframe class="contrib-form airtable-embed" src="https://airtable.com/embed/appxqzMbcv09SeeOE/pagBF0rufQwvGAefW/form" frameborder="0" onmousewheel="" width="100%" style="background: transparent; border: 1px solid #ccc;"title="Suggest a place — submission form" loading="lazy"></iframe>
+    <section id="contrib-view" aria-label="Suggest a place or event to add" hidden>
+      <p class="contrib-intro">Know a spot that takes donations or things to recycle, or a drop-off event coming up? Pick what you're adding, fill in the form, and we'll check it out and add it to Circulate.</p>
+      <div class="contrib-toggle" role="group" aria-label="What would you like to add?">
+        <button type="button" id="contrib-toggle-place" class="chip chip-btn" aria-pressed="true">A place</button>
+        <button type="button" id="contrib-toggle-event" class="chip chip-btn" aria-pressed="false">An event</button>
+      </div>
+      <iframe id="contrib-place-form" class="contrib-form airtable-embed" src="https://airtable.com/embed/appxqzMbcv09SeeOE/pagBF0rufQwvGAefW/form" frameborder="0" onmousewheel="" width="100%" style="background: transparent; border: 1px solid #ccc;"title="Suggest a place — submission form" loading="lazy"></iframe>
+      <iframe id="contrib-event-form" class="contrib-form airtable-embed" src="https://airtable.com/embed/appxqzMbcv09SeeOE/pagQ2HcLeVu9gl6Ep/form" frameborder="0" onmousewheel="" width="100%" style="background: transparent; border: 1px solid #ccc;"title="Add an event — submission form" loading="lazy" hidden></iframe>
     </section>
   </main>
 
