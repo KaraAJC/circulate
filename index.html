@@ -36,6 +36,7 @@
       <nav class="tabs" aria-label="Views">
         <button id="tab-map" class="tab" role="tab" aria-selected="true">Map</button>
         <button id="tab-cal" class="tab" role="tab" aria-selected="false">Calendar</button>
+        <button id="tab-contrib" class="tab" role="tab" aria-selected="false">Contribute</button>
       </nav>
     </div>
   </header>
@@ -59,7 +60,7 @@
         <span id="dist-status" class="dist-status" role="status" aria-live="polite"></span>
       </form>
       <div class="map-layout">
-        <div id="org-list" class="org-list" aria-label="Organization list"></div>
+        <div id="org-list" class="org-list"></div>
         <div id="map" class="map" role="application" aria-label="Map of drop-off locations"></div>
       </div>
       <p class="map-legend">
@@ -78,12 +79,18 @@
     <section id="cal-view" aria-label="Donation dates calendar" hidden>
       <div class="cal-head">
         <button id="cal-prev" class="cal-nav" aria-label="Previous month">←</button>
-        <h2 id="cal-month" class="cal-month"></h2>
+        <h2 id="cal-month" class="cal-month">This Month</h2>
         <button id="cal-next" class="cal-nav" aria-label="Next month">→</button>
       </div>
       <div id="cal-grid" class="cal-grid"></div>
       <div id="cal-detail" class="cal-detail" hidden></div>
       <p class="cal-note">Fixed sites take donations during their regular hours any week — the calendar holds the dated events: Trash Castle drop-off windows, Reduce Waste pop-ups, the city facility's first-Saturday hours, and seasonal drives.</p>
+    </section>
+
+    <!-- ============ CONTRIBUTE VIEW ============ -->
+    <section id="contrib-view" aria-label="Suggest a place to add" hidden>
+      <p class="contrib-intro">Know a spot that takes donations or things to recycle that's missing? Fill this in and we'll check it out and add it to Circulate.</p>
+      <iframe class="contrib-form airtable-embed" src="https://airtable.com/embed/appxqzMbcv09SeeOE/pagBF0rufQwvGAefW/form" frameborder="0" onmousewheel="" width="100%" style="background: transparent; border: 1px solid #ccc;"title="Suggest a place — submission form" loading="lazy"></iframe>
     </section>
   </main>
 

@@ -525,8 +525,10 @@
     view = v;
     $("#map-view").hidden = v !== "map";
     $("#cal-view").hidden = v !== "cal";
+    $("#contrib-view").hidden = v !== "contrib";
     $("#tab-map").setAttribute("aria-selected", v === "map");
     $("#tab-cal").setAttribute("aria-selected", v === "cal");
+    $("#tab-contrib").setAttribute("aria-selected", v === "contrib");
     if (v === "map") setTimeout(() => map.invalidateSize(), 50);
     if (v === "cal") renderCalendar();
   }
@@ -577,6 +579,7 @@
   $("#item-form").addEventListener("submit", (e) => e.preventDefault());
   $("#tab-map").addEventListener("click", () => switchView("map"));
   $("#tab-cal").addEventListener("click", () => switchView("cal"));
+  $("#tab-contrib").addEventListener("click", () => switchView("contrib"));
   $("#cal-prev").addEventListener("click", () => { calM--; if (calM < 0) { calM = 11; calY--; } renderCalendar(); });
   $("#cal-next").addEventListener("click", () => { calM++; if (calM > 11) { calM = 0; calY++; } renderCalendar(); });
 
